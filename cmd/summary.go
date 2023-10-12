@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"encoding/csv"
 	"fmt"
-	"log"
-	"os"
-	"strconv"
+	// "strings"
 
 	"github.com/spf13/cobra"
+	"github.com/Meowcenary/stats_cli/csvparser"
 	"github.com/montanaflynn/stats"
 )
 
@@ -22,73 +20,82 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		formatSummary([]string{"value", "income", "age", "rooms", "bedrooms", "pop", "hh"})
+		FormatSummary([]string{"value", "income", "age", "rooms", "bedrooms", "pop", "hh"}, []string{"count", "mean", "std", "stds", "min", "25%", "50%", "75%", "max"})
 	},
 }
 
-func readCSV() [][]string {
-		file, err := os.Open("housesInput.csv")
-		if err != nil {
-			log.Fatal("Error raised while reading the file", err)
-    }
-		// Defer keyword allows close call to be declared next to open call, but delays execution to end of function
-		defer file.Close()
-		// Read the file
-		reader := csv.NewReader(file)
-		records, err := reader.ReadAll()
-    if err != nil {
-        log.Fatal("Error raised while reading records", err)
-    }
-		return records
+// headerOrder array of strings that correspond to headers in the csv, e.g ["value", "income", "age"]
+// the order in the array is the order they will appear on the summary left to right
+func Summarize(headerOrder []string, data map[string][]float64, calculation func(stats.Float64Data) (float64, error)) string {
+	var summaryString string
+
+	for _, header := range headerOrder {
+		fieldData := data[header]
+		result, _ := calculation(fieldData)
+		summaryString += fmt.Sprintf("%-20f", result)
+	}
+
+	return summaryString
 }
 
-// create mapping of CSV headers to all values in column
-// data is rows of CSV data read from a file with headers
-func csvDataByColumn(data [][]string) map[string][]float64 {
-	headerIndex := make(map[int]string)
-	dataByColumn := make(map[string][]float64)
-
-	// Pop header data off of data and create mapping to csv data
-	headers, data := data[0], data[1:]
-	for i, header := range headers {
-		headerIndex[i] = header
-	}
-
-	for _, row := range data {
-		for i, v := range row {
-			header := headerIndex[i]
-
-			if value, err := strconv.ParseFloat(v, 64); err == nil {
-				dataByColumn[header] = append(dataByColumn[header], value)
-			}
-		}
-	}
-
-	return dataByColumn
+// because these functions are used by Summarize they must accept a single
+// argument stats.Float64Data and return a float64 and erorr
+func Count(data stats.Float64Data) (float64, error) {
+	return float64(len(data)), nil
 }
 
-func formatSummary(fields []string) {
-	fmt.Println("formatSummary called")
+// func GetQuartiles() {
+// 	return quartiles
+// }
+//
+// func CalcQuartiles(input stats.Float64Data) {
+// 	quartiles := stats.Quartile(input)
+// }
+//
+// the stats library calculates all three quartiles and returns them as a struct
+// to improve this create a global variable "quartiles" and a setter and getter
+// "setQuartiles" and "getQuartiles". setQuartiles will calculate the quartiles and
+// set the variable quartiles to the returned struct. Get quartiles will return the
+// current variable for quartiles
+func Q1(input stats.Float64Data) (float64, error) {
+	quartiles, _ := stats.Quartile(input)
+	return quartiles.Q1, nil
+}
 
-	records := readCSV()
-	data := csvDataByColumn(records)
+func Q2(input stats.Float64Data) (float64, error) {
+	quartiles, _ := stats.Quartile(input)
+	return quartiles.Q2, nil
+}
 
-	min_income, err := stats.Min(data["income"])
-	if err == nil {
-		fmt.Println("Min income: %f", min_income)
+func Q3(input stats.Float64Data) (float64, error) {
+	quartiles, _ := stats.Quartile(input)
+	return quartiles.Q3, nil
+}
+
+func FormatSummary(fields []string, order []string) {
+	records := csvparser.ReadCSV()
+	data := csvparser.CsvDataByColumn(records)
+
+	// all calculations available for summary
+	calculations :=  map[string]func(stats.Float64Data) (float64, error){
+		"count": Count,
+		"mean": stats.Mean,
+		"std": stats.StandardDeviation,
+		"stds": stats.StandardDeviationSample,
+		"min": stats.Min,
+		"25%": Q1,
+		"50%": Q2,
+		"75%": Q3,
+		"max": stats.Max,
 	}
-	// for key, value := range data {
-	// 	fmt.Printf("%s value is %v\n", key, value)
-	// }
 
-	// print requested stats for each field
-	// TODO need to collect data into arrays that can be used by stats library
-	// for _, value := range fields {
-	// }
-
-	// TODO add print headers function that prints out headers with spacing / delimiters
-	// fmt.Println(strings.Trim(fmt.Sprint(fields), "[]"))
-	// fmt.Println("Count: ", len(records)-1)
+	for _, field := range fields {
+		fmt.Printf("%20s", field)
+	}
+	fmt.Printf("\n")
+	for _, calculationName := range order {
+		fmt.Println(calculationName + ": " + Summarize(fields, data, calculations[calculationName]))
+	}
 }
 
 func init() {
