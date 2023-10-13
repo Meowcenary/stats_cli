@@ -7,8 +7,8 @@ import (
 	"strconv"
 )
 
-func ReadCSV() [][]string {
-		file, err := os.Open("housesInput.csv")
+func ReadCSV(path string) [][]string {
+		file, err := os.Open(path)
 		if err != nil {
 			log.Fatal("Error raised while reading the file", err)
     }
