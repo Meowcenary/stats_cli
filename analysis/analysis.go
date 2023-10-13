@@ -2,15 +2,12 @@ package analysis
 
 import (
 	"fmt"
+	"strings"
 
-	"github.com/Meowcenary/stats_cli/csvparser"
 	"github.com/montanaflynn/stats"
 )
 
-func FormatSummary(fields []string, order []string) {
-	records := csvparser.ReadCSV("housesInput.csv")
-	data := csvparser.CsvDataByColumn(records)
-
+func FormatSummary(data map[string][]float64, fields []string, order []string) {
 	// all calculations available for summary
 	calculations :=  map[string]func(stats.Float64Data) (float64, error){
 		"count": Count,
@@ -23,13 +20,14 @@ func FormatSummary(fields []string, order []string) {
 		"75%": Q3,
 		"max": stats.Max,
 	}
+	maxNameLen := 5
 
 	for _, field := range fields {
 		fmt.Printf("%20s", field)
 	}
 	fmt.Printf("\n")
 	for _, calculationName := range order {
-		fmt.Println(calculationName + ": " + SummarizeFields(fields, data, calculations[calculationName]))
+		fmt.Println(calculationName + ":" + strings.Repeat(" ", maxNameLen-len(calculationName)) + SummarizeFields(fields, data, calculations[calculationName]))
 	}
 }
 
@@ -41,7 +39,7 @@ func SummarizeFields(headerOrder []string, data map[string][]float64, calculatio
 	for _, header := range headerOrder {
 		fieldData := data[header]
 		result, _ := calculation(fieldData)
-		summaryString += fmt.Sprintf("%-20f", result)
+		summaryString += fmt.Sprintf("%20f", result)
 	}
 
 	return summaryString

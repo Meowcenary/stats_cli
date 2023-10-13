@@ -10,7 +10,7 @@ import (
 func ReadCSV(path string) [][]string {
 		file, err := os.Open(path)
 		if err != nil {
-			log.Fatal("Error raised while reading the file", err)
+			log.Fatalf("\n[Fatal] Error raised while reading file %s:\n    %v", path, err)
     }
 		// Defer keyword allows close call to be declared next to open call, but delays execution to end of function
 		defer file.Close()
@@ -18,7 +18,7 @@ func ReadCSV(path string) [][]string {
 		reader := csv.NewReader(file)
 		records, err := reader.ReadAll()
     if err != nil {
-        log.Fatal("Error raised while reading records", err)
+			log.Fatalf("[Fatal] Error raised while reading records from file %s:\n    %v", path, err)
     }
 		return records
 }

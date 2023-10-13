@@ -1,38 +1,61 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/Meowcenary/stats_cli/analysis"
+	"github.com/spf13/cobra"
+	"github.com/Meowcenary/stats_cli/csvparser"
 )
 
 // summaryCmd represents the summary command
 var summaryCmd = &cobra.Command{
 	Use:   "summary",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Short: "Print summary statistics for a CSV file",
+	Long: `Print summary statistics for a CSV file specified by
+the flag --file.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+Optionally specify CSV columns to include in output with --columns:
+	stats_cli summary --file example.csv --columns column1,column2,...
+
+Optionally specify statistics to include and ordering to appear in summary
+output with --stats:
+	stats_cli summary --file example.csv --stats count,mean,std,min,max
+`,
 	Run: func(cmd *cobra.Command, args []string) {
+		file, _ := cmd.Flags().GetString("file")
+		columns, _ := cmd.Flags().GetStringSlice("columns")
+		stats, _ := cmd.Flags().GetStringSlice("stats")
+
+		records := csvparser.ReadCSV(file)
+		data := csvparser.CsvDataByColumn(records)
+
+		// default to displaying all columns from csv in order they appear within file
+		if len(columns) == 0 {
+			columns = records[0]
+		}
+		// default to displaying all summary statistics
+		if len(stats) == 0 {
+			stats = []string{"count", "mean", "std", "stds", "min", "25%", "50%", "75%", "max"}
+		}
+
 		analysis.FormatSummary(
-			[]string{"value", "income", "age", "rooms", "bedrooms", "pop", "hh"},
-			[]string{"count", "mean", "std", "stds", "min", "25%", "50%", "75%", "max"},
+			data,
+			columns,
+			stats,
 		)
 	},
 }
 
+// used for flags
+var (
+	file string
+	columns []string
+	stats []string
+)
+
 func init() {
 	rootCmd.AddCommand(summaryCmd)
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// summaryCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// summaryCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	summaryCmd.Flags().StringVarP(&file, "file", "f", "", "CSV file to read from")
+	summaryCmd.Flags().StringSliceVar(&columns, "columns", []string{}, "Columns to include from CSV for summary output")
+	summaryCmd.Flags().StringSliceVar(&stats, "stats", []string{}, "Statistics to include for summary output")
 }

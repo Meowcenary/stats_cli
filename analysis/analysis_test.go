@@ -7,40 +7,43 @@ import (
 	"github.com/montanaflynn/stats"
 )
 
+// func TestFormatSummary(t *testing.T) {
+// 	// fields/columns to summarize
+// 	fields := []string{}
+// 	// headers ordered as they will be output
+// 	order := []string{}
+// }
+
 func TestSummarizeFields(t *testing.T) {
 	header := "TestHeader"
-	outputPadding := 20
 	data := map[string][]float64{header: {1, 2, 3,4, 5, 6, 7, 8, 9, 10}}
 
 	// Three simple test cases
 	headerOrder := []string{header}
 	calculation := stats.Min
 	summaryString := SummarizeFields(headerOrder, data, calculation)
-  expected_min := "1.000000"
-	expected := expected_min + strings.Repeat(" ", (outputPadding - len(expected_min)))
+  expectedMin := "1.000000"
 
-	if summaryString != expected {
-		t.Errorf(summaryString + "does not equal " + expected)
+	if strings.TrimSpace(summaryString) != expectedMin {
+		t.Errorf(summaryString + "does not equal " + expectedMin)
 	}
 
 	headerOrder = []string{header}
 	calculation = stats.Max
 	summaryString = SummarizeFields(headerOrder, data, calculation)
 	expectedMax := "10.000000"
-	expected = expectedMax + strings.Repeat(" ", (outputPadding - len(expectedMax)))
 
-	if summaryString != expected {
-		t.Errorf(summaryString + "does not equal " + expected)
+	if strings.TrimSpace(summaryString) != expectedMax {
+		t.Errorf(summaryString + "does not equal " + expectedMax)
 	}
 
 	headerOrder = []string{header}
 	calculation = stats.Mean
 	summaryString = SummarizeFields(headerOrder, data, calculation)
 	expectedMean := "5.500000"
-	expected = expectedMean + strings.Repeat(" ", (outputPadding - len(expectedMean)))
 
-	if summaryString != expected {
-		t.Errorf(summaryString + "does not equal " + expected)
+	if strings.TrimSpace(summaryString) != expectedMean {
+		t.Errorf(summaryString + "does not equal " + expectedMean)
 	}
 
 	// TODO: Test for fields that are not included in the calculations mapping
