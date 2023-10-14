@@ -2,30 +2,32 @@ package csvparser
 
 import (
 	"encoding/csv"
-	"log"
 	"os"
 	"strconv"
 )
 
-func ReadCSV(path string) [][]string {
+func ReadCSV(path string) ([][]string, error) {
+		// Open file
 		file, err := os.Open(path)
 		if err != nil {
-			log.Fatalf("\n[Fatal] Error raised while reading file %s:\n    %v", path, err)
+			return nil, err
     }
 		// Defer keyword allows close call to be declared next to open call, but delays execution to end of function
 		defer file.Close()
-		// Read the file
+
+		// Read records from file
 		reader := csv.NewReader(file)
 		records, err := reader.ReadAll()
     if err != nil {
-			log.Fatalf("[Fatal] Error raised while reading records from file %s:\n    %v", path, err)
+			return nil, err
     }
-		return records
+
+		return records, err
 }
 
 // create mapping of CSV headers to all values in column
 // data is rows of CSV data read from a file with headers
-func CsvDataByColumn(data [][]string) map[string][]float64 {
+func CsvDataByColumn(data [][]string) (map[string][]float64, error) {
 	headerIndex := make(map[int]string)
 	dataByColumn := make(map[string][]float64)
 
@@ -38,12 +40,15 @@ func CsvDataByColumn(data [][]string) map[string][]float64 {
 	for _, row := range data {
 		for i, v := range row {
 			header := headerIndex[i]
+			value, err := strconv.ParseFloat(v, 64)
 
-			if value, err := strconv.ParseFloat(v, 64); err == nil {
+			if err == nil {
 				dataByColumn[header] = append(dataByColumn[header], value)
+			} else {
+				return nil, err
 			}
 		}
 	}
 
-	return dataByColumn
+	return dataByColumn, nil
 }

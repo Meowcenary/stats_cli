@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"log"
+
 	"github.com/Meowcenary/stats_cli/analysis"
 	"github.com/spf13/cobra"
 	"github.com/Meowcenary/stats_cli/csvparser"
@@ -21,17 +23,26 @@ output with --stats:
 	stats_cli summary --file example.csv --stats count,mean,std,min,max
 `,
 	Run: func(cmd *cobra.Command, args []string) {
+		// handle flags
 		file, _ := cmd.Flags().GetString("file")
 		columns, _ := cmd.Flags().GetStringSlice("columns")
 		stats, _ := cmd.Flags().GetStringSlice("stats")
 
-		records := csvparser.ReadCSV(file)
-		data := csvparser.CsvDataByColumn(records)
+		records, err := csvparser.ReadCSV(file)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		data, err := csvparser.CsvDataByColumn(records)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		// default to displaying all columns from csv in order they appear within file
 		if len(columns) == 0 {
 			columns = records[0]
 		}
+
 		// default to displaying all summary statistics
 		if len(stats) == 0 {
 			stats = []string{"count", "mean", "std", "stds", "min", "25%", "50%", "75%", "max"}

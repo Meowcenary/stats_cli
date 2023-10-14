@@ -45,9 +45,6 @@ func TestSummarizeFields(t *testing.T) {
 	if strings.TrimSpace(summaryString) != expectedMean {
 		t.Errorf(summaryString + "does not equal " + expectedMean)
 	}
-
-	// TODO: Test for fields that are not included in the calculations mapping
-	// Should raise error
 }
 
 func TestQuartiles(t *testing.T) {

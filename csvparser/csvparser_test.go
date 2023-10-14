@@ -6,7 +6,7 @@ import (
 )
 
 func TestReadCSV(t *testing.T) {
-	data := ReadCSV("../testdata/easy.csv")
+	data, err := ReadCSV("../testdata/easy.csv")
 	expected_data := [][]string{
 		{"Easy", "Test", "Data"},
 		{"123", "456", "789"},
@@ -15,8 +15,22 @@ func TestReadCSV(t *testing.T) {
 		{"181", "920", "212"},
 	}
 
-	if !reflect.DeepEqual(data, expected_data) {
-		t.Errorf("Data read from test_data/easy_data.csv does not match what was expected")
+	if err != nil {
+		t.Errorf("Error raised reading from csv file")
+	} else if !reflect.DeepEqual(data, expected_data) {
+		t.Errorf("Data read from file does not match what was expected")
+	}
+}
+
+func TestReadCSVErrors(t *testing.T ) {
+	data, err := ReadCSV("../testdata/this_file_does_not_exist")
+	if data != nil || err == nil {
+		t.Errorf("Should raise error if reading from file that doesn't exist")
+	}
+
+	data, err = ReadCSV("../malformed.csv")
+	if data != nil || err == nil {
+		t.Errorf("Should raise error if reading from file that doesn't exist")
 	}
 }
 
@@ -35,9 +49,10 @@ func TestCsvDataByColumn(t *testing.T) {
 		"Data": {789.0, 131.0, 171.0, 212.0},
 	}
 
-	dataByColumn := CsvDataByColumn(data)
-
-	if !reflect.DeepEqual(dataByColumn, expectedDataByColumn) {
+	dataByColumn, err := CsvDataByColumn(data)
+	if err != nil {
+		t.Errorf("Error raised parsing data")
+	} else if !reflect.DeepEqual(dataByColumn, expectedDataByColumn) {
 		t.Errorf("Parsed data does not match what was expected")
 	}
 }
