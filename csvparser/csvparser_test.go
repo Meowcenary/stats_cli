@@ -25,12 +25,17 @@ func TestReadCSV(t *testing.T) {
 func TestReadCSVErrors(t *testing.T ) {
 	data, err := ReadCSV("../testdata/this_file_does_not_exist")
 	if data != nil || err == nil {
-		t.Errorf("Should raise error if reading from file that doesn't exist")
+		t.Errorf("Should raise error and return nil data if reading from file that doesn't exist")
 	}
 
-	data, err = ReadCSV("../malformed.csv")
+	data, err = ReadCSV("../testdata/malformed.csv")
 	if data != nil || err == nil {
-		t.Errorf("Should raise error if reading from file that doesn't exist")
+		t.Errorf("Should raise error and return nil data if reading from file that is malformed")
+	}
+
+	data, err = ReadCSV("../testdata/easy.json")
+	if data != nil || err == nil {
+		t.Errorf("Should raise error and return nil data if reading from JSON file")
 	}
 }
 

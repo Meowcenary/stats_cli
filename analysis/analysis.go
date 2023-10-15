@@ -7,9 +7,8 @@ import (
 	"github.com/montanaflynn/stats"
 )
 
-func FormatSummary(data map[string][]float64, fields []string, order []string) {
-	// all calculations available for summary
-	calculations :=  map[string]func(stats.Float64Data) (float64, error){
+func AvailableStats() map[string]func(stats.Float64Data) (float64, error) {
+	return map[string]func(stats.Float64Data) (float64, error){
 		"count": Count,
 		"mean": stats.Mean,
 		"std": stats.StandardDeviation,
@@ -20,24 +19,45 @@ func FormatSummary(data map[string][]float64, fields []string, order []string) {
 		"75%": Q3,
 		"max": stats.Max,
 	}
-	maxNameLen := 5
+}
 
-	for _, field := range fields {
+// internal function to find the longest name of the stats calculations for formatting
+func longestStatName(statnames []string) int {
+	max := 0
+
+	for _, name := range statnames {
+		length := len(name)
+		if length  > max {
+			max = length
+		}
+	}
+
+	return max
+}
+
+// data , map of column/field to decimals
+// columns , columns to include in summary
+// statsorder , ordered statsitical calculations to include in summary
+func FormatSummary(data map[string][]float64, columns []string, statsorder []string) {
+	for _, field := range columns {
 		fmt.Printf("%20s", field)
 	}
 	fmt.Printf("\n")
-	for _, calculationName := range order {
-		fmt.Println(calculationName + ":" + strings.Repeat(" ", maxNameLen-len(calculationName)) + SummarizeFields(fields, data, calculations[calculationName]))
+
+	calculations := AvailableStats()
+	maxNameLen := longestStatName(statsorder)
+	for _, calculationName := range statsorder {
+		fmt.Println(calculationName + ":" + strings.Repeat(" ", maxNameLen-len(calculationName)) + SummarizeFields(columns, data, calculations[calculationName]))
 	}
 }
 
-// headerOrder array of strings that correspond to headers in the csv, e.g ["value", "income", "age"]
-// the order in the array is the order they will appear on the summary left to right
-func SummarizeFields(headerOrder []string, data map[string][]float64, calculation func(stats.Float64Data) (float64, error)) string {
+// columns array of strings that correspond to columns in a csv, e.g ["value", "income", "age"]
+// the order columns appear in the array is the order they will appear on the summary left to right
+func SummarizeFields(columns []string, data map[string][]float64, calculation func(stats.Float64Data) (float64, error)) string {
 	var summaryString string
 
-	for _, header := range headerOrder {
-		fieldData := data[header]
+	for _, column := range columns {
+		fieldData := data[column]
 		result, _ := calculation(fieldData)
 		summaryString += fmt.Sprintf("%20f", result)
 	}

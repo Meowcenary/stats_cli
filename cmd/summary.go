@@ -26,7 +26,7 @@ output with --stats:
 		// handle flags
 		file, _ := cmd.Flags().GetString("file")
 		columns, _ := cmd.Flags().GetStringSlice("columns")
-		stats, _ := cmd.Flags().GetStringSlice("stats")
+		statsorder, _ := cmd.Flags().GetStringSlice("stats")
 
 		records, err := csvparser.ReadCSV(file)
 		if err != nil {
@@ -42,16 +42,15 @@ output with --stats:
 		if len(columns) == 0 {
 			columns = records[0]
 		}
-
 		// default to displaying all summary statistics
 		if len(stats) == 0 {
-			stats = []string{"count", "mean", "std", "stds", "min", "25%", "50%", "75%", "max"}
+			statsorder = []string{"count", "mean", "std", "stds", "min", "25%", "50%", "75%", "max"}
 		}
 
 		analysis.FormatSummary(
 			data,
 			columns,
-			stats,
+			statsorder,
 		)
 	},
 }

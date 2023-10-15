@@ -3,12 +3,25 @@ package csvparser
 import (
 	"encoding/csv"
 	"os"
+	"path"
 	"strconv"
 )
 
-func ReadCSV(path string) ([][]string, error) {
+type InvalidCsvPathError struct{
+	Filepath string
+}
+
+func (i *InvalidCsvPathError) Error() string {
+	return "Invalid CSV path: " + i.Filepath
+}
+
+func ReadCSV(filepath string) ([][]string, error) {
+		// Ensure path is a csv file
+		if path.Ext(filepath) != ".csv" {
+			return nil, &InvalidCsvPathError{Filepath: filepath}
+		}
 		// Open file
-		file, err := os.Open(path)
+		file, err := os.Open(filepath)
 		if err != nil {
 			return nil, err
     }
