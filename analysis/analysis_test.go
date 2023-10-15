@@ -7,13 +7,6 @@ import (
 	"github.com/montanaflynn/stats"
 )
 
-// func TestFormatSummary(t *testing.T) {
-// 	// fields/columns to summarize
-// 	fields := []string{}
-// 	// headers ordered as they will be output
-// 	order := []string{}
-// }
-
 func TestSummarizeFields(t *testing.T) {
 	header := "TestHeader"
 	data := map[string][]float64{header: {1, 2, 3,4, 5, 6, 7, 8, 9, 10}}

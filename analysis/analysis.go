@@ -35,20 +35,29 @@ func longestStatName(statnames []string) int {
 	return max
 }
 
+// print summary statistics for data set
 // data , map of column/field to decimals
 // columns , columns to include in summary
 // statsorder , ordered statsitical calculations to include in summary
-func FormatSummary(data map[string][]float64, columns []string, statsorder []string) {
+func PrintSummary(data map[string][]float64, columns []string, statsorder []string) {
+	fmt.Printf("%s", FormatSummary(data, columns, statsorder))
+}
+
+func FormatSummary(data map[string][]float64, columns []string, statsorder []string) string {
+	var summary string
+
 	for _, field := range columns {
-		fmt.Printf("%20s", field)
+		summary += fmt.Sprintf("%20s", field)
 	}
-	fmt.Printf("\n")
+	summary += fmt.Sprintf("\n")
 
 	calculations := AvailableStats()
 	maxNameLen := longestStatName(statsorder)
 	for _, calculationName := range statsorder {
-		fmt.Println(calculationName + ":" + strings.Repeat(" ", maxNameLen-len(calculationName)) + SummarizeFields(columns, data, calculations[calculationName]))
+		summary += fmt.Sprintf("%s: %s%s\n", calculationName, strings.Repeat(" ", maxNameLen-len(calculationName)), SummarizeFields(columns, data, calculations[calculationName]))
 	}
+
+	return summary
 }
 
 // columns array of strings that correspond to columns in a csv, e.g ["value", "income", "age"]
